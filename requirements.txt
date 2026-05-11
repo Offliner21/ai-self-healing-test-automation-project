@@ -1,0 +1,9 @@
+playwright
+pytest
+pytest-html
+openai
+requests
+python-dotenv
+python-owasp-zap-v2.4
+behave
+behave-html-formatter
