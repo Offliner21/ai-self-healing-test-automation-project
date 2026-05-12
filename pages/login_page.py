@@ -19,7 +19,7 @@ class LoginPage:
         self.page.get_by_role("menuitem", name="Go to login page").click()
 
     def enter_email(self, email):
-        safe_locator(self.page, "#email").fill(email)
+        safe_locator(self.page, "#broken_email").fill(email)
 
     def enter_password(self, password):
         safe_locator(self.page, "#password").fill(password)

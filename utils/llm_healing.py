@@ -1,10 +1,7 @@
-import os
-
 from openai import OpenAI
-
 from bs4 import BeautifulSoup
-
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
@@ -13,78 +10,109 @@ client = OpenAI(
 )
 
 
-def ask_llm_for_locator(dom, failed_locator):
-    soup = BeautifulSoup(dom, "html.parser")
+def clean_dom(html):
+    soup = BeautifulSoup(html, "html.parser")
 
-    cleaned_dom = soup.prettify()
+    for tag in soup(["script", "style", "svg", "path"]):
+        tag.decompose()
+
+    important = []
+
+    candidates = soup.find_all([
+        "input",
+        "button",
+        "a",
+        "span"
+    ])
+
+    for element in candidates:
+
+        attrs = []
+
+        if element.get("id"):
+            attrs.append(f"id='{element.get('id')}'")
+
+        if element.get("name"):
+            attrs.append(f"name='{element.get('name')}'")
+
+        if element.get("type"):
+            attrs.append(f"type='{element.get('type')}'")
+
+        if element.get("placeholder"):
+            attrs.append(
+                f"placeholder='{element.get('placeholder')}'"
+            )
+
+        if element.get("aria-label"):
+            attrs.append(
+                f"aria-label='{element.get('aria-label')}'"
+            )
+
+        text = element.get_text(strip=True)
+
+        if text:
+            attrs.append(f"text='{text}'")
+
+        important.append(
+            f"<{element.name} {' '.join(attrs)}>"
+        )
+
+    return "\n".join(important[:120])
+
+
+def ask_llm_for_locator(dom, failed_locator):
+    cleaned_dom = clean_dom(dom)
 
     prompt = f"""
-You are an expert Playwright automation engineer.
+You are an AI QA automation healing engine.
 
 A Playwright locator failed.
 
-Failed locator:
+FAILED LOCATOR:
 {failed_locator}
 
-HTML DOM:
-{cleaned_dom[:12000]}
+AVAILABLE PAGE ELEMENTS:
+{cleaned_dom}
 
-Rules:
-1. Suggest ONLY ONE Playwright locator
-2. Locator MUST uniquely identify a clickable or visible element
-3. Prefer:
-   - aria-label
-   - id
-   - data-testid
-   - button selectors
-4. Avoid generic text locators
-5. Avoid chained CSS unless necessary
-6. Return ONLY the locator string
-7. The locator must work with Playwright page.locator()
+TASK:
+Find the BEST Playwright CSS selector replacement.
 
-Good examples:
-button[aria-label='Show/hide account menu']
+RULES:
+- Return ONLY ONE selector
+- Prefer IDs first
+- Then aria-label
+- Then placeholder
+- Then text
+- NEVER explain
+- NEVER use XPath
+- ONLY return the selector
+
+GOOD EXAMPLES:
 #email
-input[type='email']
-button[aria-label='Go to login page']
-
-Return ONLY the locator.
+#password
+#loginButton
+button[aria-label='Show/hide account menu']
+input[placeholder='Email']
 """
 
     response = client.chat.completions.create(
-
         model="gpt-4.1-mini",
-
         messages=[
             {
                 "role": "system",
-                "content": (
-                    "You are a senior QA automation engineer "
-                    "specialized in Playwright locator recovery."
-                )
+                "content": "You are an expert Playwright locator healing AI."
             },
             {
                 "role": "user",
                 "content": prompt
             }
         ],
-
-        temperature=0.1
+        temperature=0
     )
 
-    locator = (
-        response
-        .choices[0]
-        .message
-        .content
-        .strip()
-    )
-
-    locator = locator.replace("```", "")
-    locator = locator.replace("css=", "")
-    locator = locator.strip()
+    selector = response.choices[0].message.content.strip()
 
     print("\n[LLM RAW RESPONSE]")
-    print(locator)
+    print(selector)
 
-    return locator
+    return selector

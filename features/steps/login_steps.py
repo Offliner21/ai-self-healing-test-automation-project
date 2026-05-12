@@ -12,7 +12,7 @@ def step_open_login_page(context):
     safe_locator(context.page, "text=Dismiss").click()
 
     # Open account menu
-    safe_locator(context.page, "text=Account").nth(2).click()
+    safe_locator(context.page, "button[aria-label='Show/hide account menu']").click()
 
     # Open login page
     context.page.get_by_role(

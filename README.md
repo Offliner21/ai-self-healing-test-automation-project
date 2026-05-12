@@ -43,8 +43,13 @@ docker run -d -p 3000:3000 bkimminich/juice-shop
 ## ▶️ Run ZAP
 
 ```bash
-docker run -p 8080:8080 --add-host=host.docker.internal:host-gateway -i ghcr.io/zaproxy/zaproxy:stable zap.sh -daemon -host 0.0.0.0 -port 8080 -config api.disablekey=true -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true ```
-
+docker run -p 127.0.0.1:8080:8080 ^
+--add-host=host.docker.internal:host-gateway ^
+-i ghcr.io/zaproxy/zaproxy:stable ^
+zap.sh -daemon ^
+-host 127.0.0.1 ^
+-port 8080 ^
+-config api.key=MySecureZapKey123
 ---
 
 ## ▶️ Run Tests

@@ -1,9 +1,6 @@
 import allure
-
 from playwright.sync_api import sync_playwright
-
 from pages.login_page import LoginPage
-
 from utils.config import BASE_URL, TEST_EMAIL, TEST_PASSWORD
 
 
