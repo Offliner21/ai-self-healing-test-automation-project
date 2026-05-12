@@ -11,7 +11,10 @@ class LoginPage:
         safe_locator(self.page, "text=Dismiss").click()
 
         # Open account menu
-        safe_locator(self.page, "text=Account").nth(2).click()
+        safe_locator(
+            self.page,
+            "button[aria-label='Show/hide account menu']"
+        ).click()
 
         self.page.get_by_role("menuitem", name="Go to login page").click()
 
